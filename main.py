@@ -24,9 +24,9 @@ energy_pattern = st.sidebar.selectbox(
 occupants = st.sidebar.slider("실내 인원 수", 1, 10, 4)
 
 # ------------------------------
-# 가상의 데이터 모델링
+# CO2 계산 모델
 # ------------------------------
-base_co2 = 400  # 실외 기본
+base_co2 = 400
 co2_per_person = 150
 
 ventilation_factor = {
@@ -41,10 +41,8 @@ energy_factor = {
     "높음 (난방/냉방 과다)": 0.9
 }
 
-# 예측 CO2 계산
 predicted_co2 = base_co2 + occupants * co2_per_person * ventilation_factor[ventilation_type] * energy_factor[energy_pattern]
 
-# 건강 지표 평가
 if predicted_co2 < 800:
     health_risk = "🟢 낮음"
 elif predicted_co2 < 1200:
@@ -53,10 +51,9 @@ else:
     health_risk = "🔴 높음"
 
 # ------------------------------
-# 출력 섹션
+# 출력
 # ------------------------------
 st.subheader("📊 결과 요약")
-
 st.markdown(f"""
 - **예상 CO₂ 농도**: `{int(predicted_co2)} ppm`
 - **두통 등 건강 위험도**: **{health_risk}**
@@ -66,13 +63,11 @@ st.markdown(f"""
 # Plotly 시각화
 # ------------------------------
 fig = go.Figure()
-
 fig.add_trace(go.Bar(
     x=["기준 (실외)", "예상 실내 CO₂ 농도"],
     y=[400, predicted_co2],
     marker_color=["green", "crimson"]
 ))
-
 fig.update_layout(
     title="실내 CO₂ 농도 변화",
     yaxis_title="CO₂ 농도 (ppm)",
@@ -81,7 +76,6 @@ fig.update_layout(
     template="plotly_white",
     height=400
 )
-
 st.plotly_chart(fig, use_container_width=True)
 
 # ------------------------------
