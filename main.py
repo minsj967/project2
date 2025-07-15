@@ -1,0 +1,90 @@
+import streamlit as st
+import pandas as pd
+import plotly.graph_objects as go
+
+st.set_page_config(page_title="실내 공기질 분석", layout="centered")
+
+st.title("🏠 환기 & 에너지 소비가 실내 공기질에 미치는 영향")
+
+# ------------------------------
+# 입력 섹션
+# ------------------------------
+st.sidebar.header("입력 설정")
+
+ventilation_type = st.sidebar.selectbox(
+    "환기 방식 선택",
+    ["자연 환기", "기계 환기", "혼합 환기"]
+)
+
+energy_pattern = st.sidebar.selectbox(
+    "에너지 소비 패턴",
+    ["낮음 (에너지 절약)", "보통", "높음 (난방/냉방 과다)"]
+)
+
+occupants = st.sidebar.slider("실내 인원 수", 1, 10, 4)
+
+# ------------------------------
+# 가상의 데이터 모델링
+# ------------------------------
+base_co2 = 400  # 실외 기본
+co2_per_person = 150
+
+ventilation_factor = {
+    "자연 환기": 1.5,
+    "기계 환기": 1.0,
+    "혼합 환기": 0.8
+}
+
+energy_factor = {
+    "낮음 (에너지 절약)": 1.1,
+    "보통": 1.0,
+    "높음 (난방/냉방 과다)": 0.9
+}
+
+# 예측 CO2 계산
+predicted_co2 = base_co2 + occupants * co2_per_person * ventilation_factor[ventilation_type] * energy_factor[energy_pattern]
+
+# 건강 지표 평가
+if predicted_co2 < 800:
+    health_risk = "🟢 낮음"
+elif predicted_co2 < 1200:
+    health_risk = "🟡 보통"
+else:
+    health_risk = "🔴 높음"
+
+# ------------------------------
+# 출력 섹션
+# ------------------------------
+st.subheader("📊 결과 요약")
+
+st.markdown(f"""
+- **예상 CO₂ 농도**: `{int(predicted_co2)} ppm`
+- **두통 등 건강 위험도**: **{health_risk}**
+""")
+
+# ------------------------------
+# Plotly 시각화
+# ------------------------------
+fig = go.Figure()
+
+fig.add_trace(go.Bar(
+    x=["기준 (실외)", "예상 실내 CO₂ 농도"],
+    y=[400, predicted_co2],
+    marker_color=["green", "crimson"]
+))
+
+fig.update_layout(
+    title="실내 CO₂ 농도 변화",
+    yaxis_title="CO₂ 농도 (ppm)",
+    xaxis_title="구분",
+    yaxis_range=[0, max(1600, predicted_co2 + 100)],
+    template="plotly_white",
+    height=400
+)
+
+st.plotly_chart(fig, use_container_width=True)
+
+# ------------------------------
+# 결론
+# ------------------------------
+st.markdown("✅ 환기 방식과 에너지 소비는 실내 공기질과 건강에 직접적인 영향을 미칩니다. 쾌적한 환경을 위해 효율적인 환기 시스템을 선택하세요.")
